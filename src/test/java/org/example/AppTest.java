@@ -32,4 +32,29 @@ public class AppTest {
                 "Big 12"
         ));
     }
+
+    @Test
+    public void testGetTeamsWithMostPointsThroughUprights() {
+
+    }
+
+    @Test
+    public void testGetTeamsPlayingFewerThanSevenGames() {
+
+    }
+
+    @Test
+    public void testGetTeamWithHighestTouchdownToFieldGoalRatio() {
+
+    }
+
+    @Test
+    public void testGetConferenceWithFewestTeams() {
+
+    }
+
+    @Test
+    public void testGetNicknamesOfTeamsWithAtLeastOneSafetyOrTwoPointConversion() {
+
+    }
 }
