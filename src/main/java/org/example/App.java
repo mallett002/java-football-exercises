@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class App {
@@ -33,13 +30,17 @@ public class App {
         // Create new comparator to sort based on ppg:
         Comparator<Conference> ppgComparator = (c1, c2) -> {
             Double c1PPG = c1.getTeams().stream()
-                .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst().get())
-                .mapToDouble(t -> t.getPointsPerGame())
+                .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .mapToDouble(Team::getPointsPerGame)
                 .sum();
 
             Double c2PPG = c2.getTeams().stream()
-                    .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst().get())
-                    .mapToDouble(t -> t.getPointsPerGame())
+                    .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .mapToDouble(Team::getPointsPerGame)
                     .sum();
 
             return c2PPG.compareTo(c1PPG);
