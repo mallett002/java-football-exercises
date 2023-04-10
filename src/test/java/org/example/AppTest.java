@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +36,13 @@ public class AppTest {
 
     @Test
     public void testGetTeamOrTeamsWithMostPointsThroughUprights() {
+        long start = System.currentTimeMillis();
+        List<String> result = app.getTeamOrTeamsWithMostPointsThroughUprights();
 
+        // Time to beat: 38ms
+        System.out.println("Total time: " + (System.currentTimeMillis() - start));
+
+        Assert.assertEquals(result, Collections.singletonList("LSU"));
     }
 
     @Test
