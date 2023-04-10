@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,7 +36,9 @@ public class AppTest {
 
     @Test
     public void testGetTeamOrTeamsWithMostPointsThroughUprights() {
+        List<String> result = app.getTeamOrTeamsWithMostPointsThroughUprights();
 
+        Assert.assertEquals(result, Collections.singletonList("LSU"));
     }
 
     @Test
