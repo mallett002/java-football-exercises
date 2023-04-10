@@ -34,7 +34,7 @@ public class AppTest {
     }
 
     @Test
-    public void testGetTeamsWithMostPointsThroughUprights() {
+    public void testGetTeamOrTeamsWithMostPointsThroughUprights() {
 
     }
 
