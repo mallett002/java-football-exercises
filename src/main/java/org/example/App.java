@@ -68,33 +68,60 @@ public class App {
             return new ArrayList<>();
         }
 
-        int most = 0;
-        List<String> leaders = new ArrayList<>();
+        // Reduce it to List<String> of the
+        Map<Integer, List<String>> teamsByPoints = teams.stream().reduce(new TreeMap<>(), (teamMap, team) -> {
+            int fgs = team.getFieldGoals() != null ? team.getFieldGoals() : 0;
+            int pats = team.getPATs() != null ? team.getPATs() : 0;
+            int points = (fgs * 3) + team.getPATs();
 
-        for (Team team : teams) {
-            Integer fg = team.getFieldGoals();
-            Integer pats = team.getPATs();
-            int currTotal = 0;
+            int mostPts = teamMap.lastKey() != null ? (Integer) teamMap.lastKey() : 0;
 
-            if (fg != null) currTotal += fg * 3;
-            if (pats != null) currTotal += pats;
+            if (points > mostPts) {
+                teamMap.remove(mostPts);
 
-            if (currTotal < most) {
-                continue;
+                List<String> teamNames = new ArrayList<>();
+                teamNames.add(team.getName());
+
+                teamMap.put(points, teamNames);
+            } else if (points == mostPts) {
+                List<String> teamNames = (List<String>) teamMap.get(mostPts);
+
+                teamNames.add(team.getName());
+                teamMap.replace(mostPts, teamNames);
             }
 
-            if (currTotal == most) {
-                leaders.add(team.getName());
-            }
+            return teamMap;
+        }, (one, two) -> )
+                .map(Collectors.toTre)
+                .map(Team::getName);
 
-            if (currTotal > most) {
-                most = currTotal;
-                leaders = new ArrayList<>();
-                leaders.add(team.getName());
-            }
-        }
-
-        return leaders;
+//        int most = 0;
+//        List<String> leaders = new ArrayList<>();
+//
+//        for (Team team : teams) {
+//            Integer fg = team.getFieldGoals();
+//            Integer pats = team.getPATs();
+//            int currTotal = 0;
+//
+//            if (fg != null) currTotal += fg * 3;
+//            if (pats != null) currTotal += pats;
+//
+//            if (currTotal < most) {
+//                continue;
+//            }
+//
+//            if (currTotal == most) {
+//                leaders.add(team.getName());
+//            }
+//
+//            if (currTotal > most) {
+//                most = currTotal;
+//                leaders = new ArrayList<>();
+//                leaders.add(team.getName());
+//            }
+//        }
+//
+//        return leaders;
 
         /* Other way "more readable"*/
 //        Map<Integer, List<String>> teamsByTotal = new HashMap<>();
