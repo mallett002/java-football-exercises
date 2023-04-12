@@ -2,6 +2,8 @@ package org.example;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,71 +70,81 @@ public class App {
             return new ArrayList<>();
         }
 
-        // Reduce it to List<String> of the
-        Map<Integer, List<String>> teamsByPoints = teams.stream().reduce(new TreeMap<>(), (teamMap, team) -> {
-            int fgs = team.getFieldGoals() != null ? team.getFieldGoals() : 0;
-            int pats = team.getPATs() != null ? team.getPATs() : 0;
-            int points = (fgs * 3) + team.getPATs();
+        @Data
+        @AllArgsConstructor
+        class Pair<L, R> {
+            L left;
+            R right;
+        }
 
-            int mostPts = teamMap.lastKey() != null ? (Integer) teamMap.lastKey() : 0;
+        Map<Integer, List<String>> it = teams.stream()
+                .map(t -> {
+                    int fg = Optional.ofNullable(t.getFieldGoals()).orElse(0) * 3;
+                    int pats = Optional.ofNullable(t.getPATs()).orElse(0);
+                    int total = fg + pats;
 
-            if (points > mostPts) {
-                teamMap.remove(mostPts);
+                    return new Pair<String, Integer>(t.getName(), total);
+                })
+                .reduce(
+                        new HashMap<Integer, List<String>>(),
+                        (memo, pair) -> {
 
-                List<String> teamNames = new ArrayList<>();
-                teamNames.add(team.getName());
+                            if (!memo.containsKey(pair.getRight())) {
 
-                teamMap.put(points, teamNames);
-            } else if (points == mostPts) {
-                List<String> teamNames = (List<String>) teamMap.get(mostPts);
+                                List<String> teamsWithPoints = new ArrayList<>();
 
-                teamNames.add(team.getName());
-                teamMap.replace(mostPts, teamNames);
-            }
+                                teamsWithPoints.add(pair.getLeft());
+                                memo.put(pair.getRight(), teamsWithPoints);
 
-            return teamMap;
-        }, (one, two) -> )
-                .map(Collectors.toTre)
-                .map(Team::getName);
+                            } else {
+                                List<String> teamsWithPoints = memo.get(pair.getRight());
+                                teamsWithPoints.add(pair.getLeft());
+                                // Do I need to do this next step?
+                                memo.replace(pair.getRight(), teamsWithPoints);
+                            }
 
-//        int most = 0;
-//        List<String> leaders = new ArrayList<>();
+                            return memo;
+                        },
+                        (one, two) -> {
+                            one.putAll(two);
+                            return one;
+                        }
+                );
+        System.out.println(it);
+
+//        map get number of points
+//                order / sort
 //
-//        for (Team team : teams) {
-//            Integer fg = team.getFieldGoals();
-//            Integer pats = team.getPATs();
-//            int currTotal = 0;
+//                        take first few
 //
-//            if (fg != null) currTotal += fg * 3;
-//            if (pats != null) currTotal += pats;
+//                private final class PointsForTeam {
+//                    public String teamName;
+//                    public int points;
+//                    public PointsForTeam(String teamName, int points) {
+//                        this.teamName = teamName;
+//                        this.points = points;
+//                    }
+//                }
 //
-//            if (currTotal < most) {
-//                continue;
-//            }
+//                Comparator<PointsForTeam> neatComparator = (obj1, obj2) -> {
+//                    return obj1.points - obj2.points;
+//                };
 //
-//            if (currTotal == most) {
-//                leaders.add(team.getName());
-//            }
-//
-//            if (currTotal > most) {
-//                most = currTotal;
-//                leaders = new ArrayList<>();
-//                leaders.add(team.getName());
-//            }
-//        }
-//
-//        return leaders;
+//                List<PointsForTeam> hi = teams.stream().map((team) -> {
+//                    int fieldGoalPoints = Optional.ofNullable(team.getFieldGoals()).orElse(0) * 3;
+//                    int extraPoints = Optional.ofNullable(team.getPATs()).orElse(0);
+//                    int points = fieldGoalPoints + extraPoints;
+//                    return new PointsForTeam(team.getName(), points);
+//                }).sorted(neatComparator).collect(Collectors.toList());
+
 
         /* Other way "more readable"*/
 //        Map<Integer, List<String>> teamsByTotal = new HashMap<>();
 //
 //        teams.forEach(t -> {
-//            Integer fg = t.getFieldGoals();
-//            Integer pats = t.getPATs();
-//            int total = 0;
-//
-//            if (fg != null) total += fg * 3;
-//            if (pats != null) total += pats;
+//            int fieldGoalPoints = Optional.ofNullable(t.getFieldGoals()).orElse(0) * 3;
+//            int pats = Optional.ofNullable(t.getPATs()).orElse(0);
+//            int total = fieldGoalPoints + pats;
 //
 //            if (!teamsByTotal.containsKey(total)) {
 //                ArrayList<String> newList = new ArrayList<>();
@@ -148,6 +160,9 @@ public class App {
 //        });
 //
 //        return teamsByTotal.get(Collections.max(teamsByTotal.keySet()));
+        return Arrays.asList("hi");
     }
+
+
 
 }

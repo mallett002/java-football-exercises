@@ -42,7 +42,7 @@ public class AppTest {
         // Time to beat: 38ms
         System.out.println("Total time: " + (System.currentTimeMillis() - start));
 
-        Assert.assertEquals(result, Collections.singletonList("LSU"));
+        Assert.assertEquals(Collections.singletonList("LSU"), result);
     }
 
     @Test
