@@ -77,7 +77,7 @@ public class App {
             R right;
         }
 
-        Map<Integer, List<String>> it = teams.stream()
+        TreeMap<Integer, List<String>> teamsByPoints = teams.stream()
                 .map(t -> {
                     int fg = Optional.ofNullable(t.getFieldGoals()).orElse(0) * 3;
                     int pats = Optional.ofNullable(t.getPATs()).orElse(0);
@@ -86,31 +86,26 @@ public class App {
                     return new Pair<String, Integer>(t.getName(), total);
                 })
                 .reduce(
-                        new HashMap<Integer, List<String>>(),
+                        new TreeMap<>(),
                         (memo, pair) -> {
-
                             if (!memo.containsKey(pair.getRight())) {
-
                                 List<String> teamsWithPoints = new ArrayList<>();
-
                                 teamsWithPoints.add(pair.getLeft());
                                 memo.put(pair.getRight(), teamsWithPoints);
-
                             } else {
                                 List<String> teamsWithPoints = memo.get(pair.getRight());
                                 teamsWithPoints.add(pair.getLeft());
-                                // Do I need to do this next step?
-                                memo.replace(pair.getRight(), teamsWithPoints);
                             }
 
                             return memo;
                         },
-                        (one, two) -> {
-                            one.putAll(two);
-                            return one;
+                        (treeOne, treeTwo) -> {
+                            treeOne.putAll(treeTwo);
+                            return treeOne;
                         }
                 );
-        System.out.println(it);
+
+        return teamsByPoints.get(teamsByPoints.lastKey());
 
 //        map get number of points
 //                order / sort
@@ -160,7 +155,6 @@ public class App {
 //        });
 //
 //        return teamsByTotal.get(Collections.max(teamsByTotal.keySet()));
-        return Arrays.asList("hi");
     }
 
 
