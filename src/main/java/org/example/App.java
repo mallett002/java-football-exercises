@@ -2,8 +2,6 @@ package org.example;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,13 +66,6 @@ public class App {
 
         if (teams.isEmpty()) {
             return new ArrayList<>();
-        }
-
-        @Data
-        @AllArgsConstructor
-        class Pair<L, R> {
-            L left;
-            R right;
         }
 
         TreeMap<Integer, List<String>> teamsByPoints = teams.stream()
@@ -171,6 +162,50 @@ public class App {
     }
 
     public List<String> getConferenceWithFewestGamesPlayed() throws IOException {
+        InputStream conferencesStream = null;
+        InputStream teamsStream = null;
 
+        try {
+            conferencesStream = Conference.class.getResourceAsStream("/conferences.json");
+            teamsStream = Conference.class.getResourceAsStream("/teams.json");
+        } catch (Exception ex) {
+            System.out.printf("Error reading file: %s", ex);
+        }
+
+        // filter conferences
+        // one or few with the least amt of games played
+        // sum the team.gamesPlayed for the conf
+        List<Conference> conferences = mapper.readValue(conferencesStream, new TypeReference<List<Conference>>() {});
+        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+
+        // Conferences -> {games -> name}
+        List<Pair<Integer, String>> it = conferences.stream()
+                .map(conference -> {
+                    // sum total games played for the teams in the conference
+                    Integer totalGamesForConference = conference.getTeams().stream()
+                            .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .map(Team::getGames)
+                            .reduce(0, Integer::sum);
+
+                    return new Pair<Integer, String>(totalGamesForConference, conference.getName());
+                })
+                .sorted((a, b) -> b.getLeft().compareTo(a.getLeft()))
+//                .map(Pair::getRight)
+                .collect(Collectors.toList());
+
+
+
+
+
+        if (conferencesStream != null) {
+            conferencesStream.close();
+        }
+        if (teamsStream != null) {
+            teamsStream.close();
+        }
+
+        return new ArrayList<>();
     }
 }
