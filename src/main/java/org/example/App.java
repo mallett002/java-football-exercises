@@ -169,4 +169,8 @@ public class App {
                 .map(Team::getName)
                 .collect(Collectors.toList());
     }
+
+    public List<String> getConferenceWithFewestGamesPlayed() throws IOException {
+
+    }
 }

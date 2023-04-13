@@ -51,8 +51,10 @@ public class AppTest {
     }
 
     @Test
-    public void testGetConferenceWithFewestGamesPlayed() {
+    public void testGetConferenceWithFewestGamesPlayed() throws IOException {
+        List<String> teamNames = app.getConferenceWithFewestGamesPlayed();
 
+        Assert.assertEquals(Arrays.asList("Big 12", "Big Ten"), teamNames);
     }
 
     @Test
