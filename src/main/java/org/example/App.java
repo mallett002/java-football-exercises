@@ -112,28 +112,26 @@ public class App {
 //
 //                        take first few
 //
-//                private final class PointsForTeam {
-//                    public String teamName;
-//                    public int points;
-//                    public PointsForTeam(String teamName, int points) {
-//                        this.teamName = teamName;
-//                        this.points = points;
-//                    }
-//                }
+//        private final class PointsForTeam {
+//            public String teamName;
+//            public int points;
+//            public PointsForTeam(String teamName, int points) {
+//                this.teamName = teamName;
+//                this.points = points;
+//            }
+//        }
 //
-//                Comparator<PointsForTeam> neatComparator = (obj1, obj2) -> {
-//                    return obj1.points - obj2.points;
-//                };
+//        Comparator<PointsForTeam> neatComparator = (obj1, obj2) -> {
+//            return obj1.points - obj2.points;
+//        };
 //
-//                List<PointsForTeam> hi = teams.stream().map((team) -> {
-//                    int fieldGoalPoints = Optional.ofNullable(team.getFieldGoals()).orElse(0) * 3;
-//                    int extraPoints = Optional.ofNullable(team.getPATs()).orElse(0);
-//                    int points = fieldGoalPoints + extraPoints;
-//                    return new PointsForTeam(team.getName(), points);
-//                }).sorted(neatComparator).collect(Collectors.toList());
+//        List<PointsForTeam> hi = teams.stream().map((team) -> {
+//            int fieldGoalPoints = Optional.ofNullable(team.getFieldGoals()).orElse(0) * 3;
+//            int extraPoints = Optional.ofNullable(team.getPATs()).orElse(0);
+//            int points = fieldGoalPoints + extraPoints;
+//            return new PointsForTeam(team.getName(), points);
+//        }).sorted(neatComparator).collect(Collectors.toList());
 
-
-        /* Other way "more readable"*/
 //        Map<Integer, List<String>> teamsByTotal = new HashMap<>();
 //
 //        teams.forEach(t -> {
@@ -158,5 +156,17 @@ public class App {
     }
 
 
+    public List<String> getTeamsPlayingFewerThanSevenGames() throws IOException {
+        InputStream teamsStream = Team.class.getResourceAsStream("/teams.json");
+        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
 
+        return teams.stream()
+                .filter(team -> {
+                    int gamesPlayed = Optional.of(team.getGames()).orElse(0);
+
+                    return gamesPlayed < 7;
+                })
+                .map(Team::getName)
+                .collect(Collectors.toList());
+    }
 }

@@ -36,17 +36,22 @@ public class AppTest {
 
     @Test
     public void testGetTeamOrTeamsWithMostPointsThroughUprights() {
-        long start = System.currentTimeMillis();
-        List<String> result = app.getTeamOrTeamsWithMostPointsThroughUprights();
+        List<String> teamNames = app.getTeamOrTeamsWithMostPointsThroughUprights();
 
-        // Time to beat: 38ms
-        System.out.println("Total time: " + (System.currentTimeMillis() - start));
-
-        Assert.assertEquals(Collections.singletonList("LSU"), result);
+        Assert.assertEquals(Collections.singletonList("LSU"), teamNames);
     }
 
     @Test
-    public void testGetTeamsPlayingFewerThanSevenGames() {
+    public void testGetTeamsPlayingFewerThanSevenGames() throws IOException {
+        List<String> teamNames = app.getTeamsPlayingFewerThanSevenGames();
+        String colorado = teamNames.stream().filter(t -> t.equals("Colorado")).findFirst().orElse(null);
+
+        Assert.assertEquals(40, teamNames.size());
+        Assert.assertEquals("Colorado", colorado);
+    }
+
+    @Test
+    public void testGetConferenceWithFewestGamesPlayed() {
 
     }
 
