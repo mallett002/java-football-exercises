@@ -216,4 +216,31 @@ public class App {
         // Return the one with the fewest game (first key in treeMap is lowest)
         return conferencesByGamesPlayed.firstEntry().getValue();
     }
+
+    public String getTeamWithHighestTouchdownToFieldGoalRatio() throws IOException {
+        InputStream teamsStream = null;
+
+        try {
+            teamsStream = Team.class.getResourceAsStream("/teams.json");
+        } catch (Exception exception) {
+            System.out.println("Error parsing json: " + exception);
+        }
+
+        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+
+        Optional<Pair<String, Double>> teamsToRatio = teams.stream()
+                .map(team -> {
+                    int touchdowns = Optional.of(team.getTouchdowns()).orElse(0);
+                    int fieldGoals = Optional.of(team.getFieldGoals()).orElse(0);
+                    double ratio = (double) touchdowns / fieldGoals;
+
+                    return new Pair<String, Double>(team.getName(), ratio);
+                }).min((a, b) -> b.getRight().compareTo(a.getRight()));
+
+        if (teamsStream != null) {
+            teamsStream.close();
+        }
+
+        return teamsToRatio.map(Pair::getLeft).orElse(null);
+    }
 }
