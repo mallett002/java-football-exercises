@@ -96,8 +96,8 @@ public class App {
                         }
                 );
 
-        return teamsByPoints.get(teamsByPoints.lastKey());
-
+//        return teamsByPoints.get(teamsByPoints.lastKey());
+          return teamsByPoints.lastEntry().getValue();
 //        map get number of points
 //                order / sort
 //
@@ -172,14 +172,11 @@ public class App {
             System.out.printf("Error reading file: %s", ex);
         }
 
-        // filter conferences
-        // one or few with the least amt of games played
-        // sum the team.gamesPlayed for the conf
         List<Conference> conferences = mapper.readValue(conferencesStream, new TypeReference<List<Conference>>() {});
         List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
 
-        // Conferences -> {games -> name}
-        List<Pair<Integer, String>> it = conferences.stream()
+        TreeMap<Integer, List<String>> conferencesByGamesPlayed = conferences.stream()
+                // map conference -> Pair<gamesPlayed, conferenceName>
                 .map(conference -> {
                     // sum total games played for the teams in the conference
                     Integer totalGamesForConference = conference.getTeams().stream()
@@ -191,13 +188,23 @@ public class App {
 
                     return new Pair<Integer, String>(totalGamesForConference, conference.getName());
                 })
-                .sorted((a, b) -> b.getLeft().compareTo(a.getLeft()))
-//                .map(Pair::getRight)
-                .collect(Collectors.toList());
+                // reduce Pair -> TreeMap<gamesPlayed, List<conferenceNames>>
+                .reduce(
+                        new TreeMap<>(),
+                        (memo, pair) -> {
+                            if (!memo.containsKey(pair.getLeft())) {
+                                memo.put(pair.getLeft(), new ArrayList<>());
+                            }
 
+                            memo.get(pair.getLeft()).add(pair.getRight());
 
-
-
+                            return memo;
+                        },
+                        (treeOne, treeTwo) -> {
+                            treeOne.putAll(treeTwo);
+                            return treeOne;
+                        }
+                );
 
         if (conferencesStream != null) {
             conferencesStream.close();
@@ -206,6 +213,7 @@ public class App {
             teamsStream.close();
         }
 
-        return new ArrayList<>();
+        // Return the one with the fewest game (first key in treeMap is lowest)
+        return conferencesByGamesPlayed.firstEntry().getValue();
     }
 }
