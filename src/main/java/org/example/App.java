@@ -96,7 +96,6 @@ public class App {
                         }
                 );
 
-//        return teamsByPoints.get(teamsByPoints.lastKey());
           return teamsByPoints.lastEntry().getValue();
 //        map get number of points
 //                order / sort
@@ -234,7 +233,7 @@ public class App {
                     int fieldGoals = Optional.of(team.getFieldGoals()).orElse(0);
                     double ratio = (double) touchdowns / fieldGoals;
 
-                    return new Pair<String, Double>(team.getName(), ratio);
+                    return new Pair<>(team.getName(), ratio);
                 }).min((a, b) -> b.getRight().compareTo(a.getRight()));
 
         if (teamsStream != null) {
