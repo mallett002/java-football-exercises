@@ -54,12 +54,14 @@ public class AppTest {
     public void testGetConferenceWithFewestGamesPlayed() throws IOException {
         List<String> teamNames = app.getConferenceWithFewestGamesPlayed();
 
-        Assert.assertEquals(Arrays.asList("Big 12"), teamNames);
+        Assert.assertEquals(Collections.singletonList("Big 12"), teamNames);
     }
 
     @Test
-    public void testGetTeamWithHighestTouchdownToFieldGoalRatio() {
+    public void testGetTeamWithHighestTouchdownToFieldGoalRatio() throws IOException {
+        String teamName = app.getTeamWithHighestTouchdownToFieldGoalRatio();
 
+        Assert.assertEquals("Georgia Tech", teamName);
     }
 
     @Test
