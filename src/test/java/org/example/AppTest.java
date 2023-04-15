@@ -65,6 +65,13 @@ public class AppTest {
     }
 
     @Test
+    public void testGetConferenceWithHighestTouchdownToFieldGoalRatio() {
+        String conferenceName = app.getConferenceWithHighestTouchdownToFieldGoalRatio();
+
+        Assert.assertEquals("Pac-12", conferenceName);
+    }
+
+    @Test
     public void testGetConferenceWithFewestTeams() {
 
     }
