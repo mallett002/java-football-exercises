@@ -242,4 +242,77 @@ public class App {
 
         return teamsToRatio.map(Pair::getLeft).orElse(null);
     }
+
+    public String getConferenceWithHighestTouchdownToFieldGoalRatio() {
+        InputStream conferenceStream = null;
+        InputStream teamStream = null;
+
+        conferenceStream = Conference.class.getResourceAsStream("/conferences.json");
+        teamStream = Team.class.getResourceAsStream("/teams.json");
+
+        try {
+            List<Conference> conferences = mapper.readValue(conferenceStream, new TypeReference<List<Conference>>() {});
+            List<Team> teams = mapper.readValue(teamStream, new TypeReference<List<Team>>() {});
+
+            List<Pair<Double, String>> conferenceRatiosToNames = conferences.stream()
+                    .map(conference -> {
+
+                        Pair<Integer, Integer> tdsToFgs = conference.getTeams().stream()
+                                .map(teamId ->  teams.stream().filter(t -> t.getId().equals(teamId)).findAny().orElse(null)) // list Team
+                                .filter(Objects::nonNull)                                                                          // filter out nulls
+                                .map(team -> {                                                                                     // map to stream of {TD, FG}
+                                    int touchdowns = Optional.of(team.getTouchdowns()).orElse(0);
+                                    int fgs = Optional.of(team.getFieldGoals()).orElse(0);
+
+                                    return new Pair<>(touchdowns, fgs);
+                                })
+                                .reduce(                                                                                            // reduce to {confTotalTD, confTotalFG}
+                                        new Pair<>(0, 0),
+                                        (memo, currPair) -> {
+                                            // Pair<Td, Fg>
+                                            Integer td = currPair.getLeft();
+                                            Integer fg = currPair.getRight();
+
+                                            Integer totalTd = memo.getLeft() + td;
+                                            Integer totalFg = memo.getRight() + fg;
+
+                                            memo.setLeft(totalTd);
+                                            memo.setRight(totalFg);
+
+                                            return memo;
+                                        },
+                                        (a, b) -> {
+                                            Pair<Integer, Integer> result = new Pair<>();
+                                            result.setLeft(a.getLeft() + b.getLeft());
+                                            result.setRight(a.getRight() + b.getRight());
+
+                                            return result;
+                                        }
+                                );
+
+                        double ratio = (double) tdsToFgs.getLeft() / tdsToFgs.getRight();
+
+                        return new Pair<>(ratio, conference.getName());
+                    })
+                    .sorted((a, b) -> b.getLeft().compareTo(a.getLeft()))
+                    .collect(Collectors.toList());
+
+            System.out.println(conferenceRatiosToNames);
+
+            Objects.requireNonNull(conferenceStream).close();
+            Objects.requireNonNull(teamStream).close();
+
+            return conferenceRatiosToNames.size() > 0 ? conferenceRatiosToNames.get(0).getRight() : null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+//        conferences -> TreeMap<ratio, name>
+//          return highest one
+
+//        conferences -> map to list of Pair<Ratio, name> (or HashMap<Ratio, name>)
+//              get the highest value
+
+
+    }
 }

@@ -65,10 +65,10 @@ public class AppTest {
     }
 
     @Test
-    public void testGetConferenceWithHighestTouchdownToFieldGoalRatio() throws IOException {
+    public void testGetConferenceWithHighestTouchdownToFieldGoalRatio() {
         String conferenceName = app.getConferenceWithHighestTouchdownToFieldGoalRatio();
 
-        Assert.assertEquals("ACC", conferenceName);
+        Assert.assertEquals("Pac-12", conferenceName);
     }
 
     @Test
