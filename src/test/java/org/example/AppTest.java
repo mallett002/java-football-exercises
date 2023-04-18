@@ -73,7 +73,9 @@ public class AppTest {
 
     @Test
     public void testGetConferenceWithFewestTeams() {
+        String conferenceName = app.getConferenceWithFewestTeams();
 
+        Assert.assertEquals("Big 12", conferenceName);
     }
 
     @Test

@@ -339,13 +339,43 @@ public class App {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-//        conferences -> TreeMap<ratio, name>
-//          return highest one
-
-//        conferences -> map to list of Pair<Ratio, name> (or HashMap<Ratio, name>)
-//              get the highest value
-
-
     }
+
+    public String getConferenceWithFewestTeams() {
+        InputStream conferenceStream = Conference.class.getResourceAsStream("/conferences.json");
+
+        List<Conference> conferences;
+
+        try {
+            conferences = mapper.readValue(conferenceStream, new TypeReference<List<Conference>>() {});
+
+            Optional<Conference> maybeConference = conferences.stream()
+                    .min(Comparator.comparingInt(conf -> conf.getTeams().size()));
+
+            return maybeConference.map(Conference::getName).orElse(null);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
