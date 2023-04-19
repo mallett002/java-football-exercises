@@ -20,83 +20,84 @@ public class App {
         System.out.println( "Hello World!" );
     }
 
-    public List<String> sortConferencesByAveragePointsPerGame() throws IOException {
+    public List<String> sortConferencesByAveragePointsPerGame() {
         InputStream conferenceStream = Conference.class.getResourceAsStream("/conferences.json");
         InputStream teamStream = Conference.class.getResourceAsStream("/teams.json");
 
-        List<Conference> conferences = mapper.readValue(conferenceStream, new TypeReference<List<Conference>>(){});
-        List<Team> teams = mapper.readValue(teamStream, new TypeReference<List<Team>>(){});
+        try {
+            List<Conference> conferences = mapper.readValue(conferenceStream, new TypeReference<List<Conference>>(){});
+            List<Team> teams = mapper.readValue(teamStream, new TypeReference<List<Team>>(){});
 
-        // Create new comparator to sort based on ppg:
-        Comparator<Conference> ppgComparator = (c1, c2) -> {
-            Double c1PPG = c1.getTeams().stream()
-                .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .mapToDouble(Team::getPointsPerGame)
-                .sum();
+            Objects.requireNonNull(conferenceStream).close();
+            Objects.requireNonNull(teamStream).close();
 
-            Double c2PPG = c2.getTeams().stream()
+            // Create new comparator to sort based on ppg:
+            Comparator<Conference> ppgComparator = (c1, c2) -> {
+                Double c1PPG = c1.getTeams().stream()
                     .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .mapToDouble(Team::getPointsPerGame)
                     .sum();
 
-            return c2PPG.compareTo(c1PPG);
-        };
+                Double c2PPG = c2.getTeams().stream()
+                        .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .mapToDouble(Team::getPointsPerGame)
+                        .sum();
 
-        // sort the list of conferences by the summed total ppg of the teams in that conference
-        return conferences.stream()
-                .sorted(ppgComparator)
-                .map(Conference::getName)
-                .collect(Collectors.toList());
+                return c2PPG.compareTo(c1PPG);
+            };
+
+            // sort the list of conferences by the summed total ppg of the teams in that conference
+            return conferences.stream()
+                    .sorted(ppgComparator)
+                    .map(Conference::getName)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     List<String> getTeamOrTeamsWithMostPointsThroughUprights() {
         InputStream teamsStream = Team.class.getResourceAsStream("/teams.json");
 
-        List<Team> teams;
-
         try {
-            teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+            List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+
+            TreeMap<Integer, List<String>> teamsByPoints = teams.stream()
+                    .map(t -> {
+                        int fg = Optional.ofNullable(t.getFieldGoals()).orElse(0) * 3;
+                        int pats = Optional.ofNullable(t.getPATs()).orElse(0);
+                        int total = fg + pats;
+
+                        return new Pair<String, Integer>(t.getName(), total);
+                    })
+                    .reduce(
+                            new TreeMap<>(),
+                            (memo, pair) -> {
+                                if (!memo.containsKey(pair.getRight())) {
+                                    List<String> teamsWithPoints = new ArrayList<>();
+                                    teamsWithPoints.add(pair.getLeft());
+                                    memo.put(pair.getRight(), teamsWithPoints);
+                                } else {
+                                    List<String> teamsWithPoints = memo.get(pair.getRight());
+                                    teamsWithPoints.add(pair.getLeft());
+                                }
+
+                                return memo;
+                            },
+                            (treeOne, treeTwo) -> {
+                                treeOne.putAll(treeTwo);
+                                return treeOne;
+                            }
+                    );
+
+            return teamsByPoints.lastEntry().getValue();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        if (teams.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        TreeMap<Integer, List<String>> teamsByPoints = teams.stream()
-                .map(t -> {
-                    int fg = Optional.ofNullable(t.getFieldGoals()).orElse(0) * 3;
-                    int pats = Optional.ofNullable(t.getPATs()).orElse(0);
-                    int total = fg + pats;
-
-                    return new Pair<String, Integer>(t.getName(), total);
-                })
-                .reduce(
-                        new TreeMap<>(),
-                        (memo, pair) -> {
-                            if (!memo.containsKey(pair.getRight())) {
-                                List<String> teamsWithPoints = new ArrayList<>();
-                                teamsWithPoints.add(pair.getLeft());
-                                memo.put(pair.getRight(), teamsWithPoints);
-                            } else {
-                                List<String> teamsWithPoints = memo.get(pair.getRight());
-                                teamsWithPoints.add(pair.getLeft());
-                            }
-
-                            return memo;
-                        },
-                        (treeOne, treeTwo) -> {
-                            treeOne.putAll(treeTwo);
-                            return treeOne;
-                        }
-                );
-
-          return teamsByPoints.lastEntry().getValue();
 //        map get number of points
 //                order / sort
 //
@@ -121,7 +122,7 @@ public class App {
 //            int points = fieldGoalPoints + extraPoints;
 //            return new PointsForTeam(team.getName(), points);
 //        }).sorted(neatComparator).collect(Collectors.toList());
-
+//
 //        Map<Integer, List<String>> teamsByTotal = new HashMap<>();
 //
 //        teams.forEach(t -> {
@@ -146,21 +147,27 @@ public class App {
     }
 
 
-    public List<String> getTeamsPlayingFewerThanSevenGames() throws IOException {
+    public List<String> getTeamsPlayingFewerThanSevenGames() {
         InputStream teamsStream = Team.class.getResourceAsStream("/teams.json");
-        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
 
-        return teams.stream()
-                .filter(team -> {
-                    int gamesPlayed = Optional.of(team.getGames()).orElse(0);
+        try {
+            List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+            Objects.requireNonNull(teamsStream).close();
 
-                    return gamesPlayed < 7;
-                })
-                .map(Team::getName)
-                .collect(Collectors.toList());
+            return teams.stream()
+                    .filter(team -> {
+                        int gamesPlayed = Optional.of(team.getGames()).orElse(0);
+
+                        return gamesPlayed < 7;
+                    })
+                    .map(Team::getName)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public List<String> getConferenceWithFewestGamesPlayed() throws IOException {
+    public List<String> getConferenceWithFewestGamesPlayed() {
         InputStream conferencesStream = null;
         InputStream teamsStream = null;
 
@@ -171,52 +178,52 @@ public class App {
             System.out.printf("Error reading file: %s", ex);
         }
 
-        List<Conference> conferences = mapper.readValue(conferencesStream, new TypeReference<List<Conference>>() {});
-        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+        try {
+            List<Conference> conferences = mapper.readValue(conferencesStream, new TypeReference<List<Conference>>() {});
+            List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
 
-        TreeMap<Integer, List<String>> conferencesByGamesPlayed = conferences.stream()
-                // map conference -> Pair<gamesPlayed, conferenceName>
-                .map(conference -> {
-                    // sum total games played for the teams in the conference
-                    Integer totalGamesForConference = conference.getTeams().stream()
-                            .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .map(Team::getGames)
-                            .reduce(0, Integer::sum);
+            Objects.requireNonNull(conferencesStream).close();
+            Objects.requireNonNull(teamsStream).close();
 
-                    return new Pair<Integer, String>(totalGamesForConference, conference.getName());
-                })
-                // reduce Pair -> TreeMap<gamesPlayed, List<conferenceNames>>
-                .reduce(
-                        new TreeMap<>(),
-                        (memo, pair) -> {
-                            if (!memo.containsKey(pair.getLeft())) {
-                                memo.put(pair.getLeft(), new ArrayList<>());
+            TreeMap<Integer, List<String>> conferencesByGamesPlayed = conferences.stream()
+                    // map conference -> Pair<gamesPlayed, conferenceName>
+                    .map(conference -> {
+                        // sum total games played for the teams in the conference
+                        Integer totalGamesForConference = conference.getTeams().stream()
+                                .map(teamId -> teams.stream().filter(t -> t.getId().equals(teamId)).findFirst())
+                                .filter(Optional::isPresent)
+                                .map(Optional::get)
+                                .map(Team::getGames)
+                                .reduce(0, Integer::sum);
+
+                        return new Pair<Integer, String>(totalGamesForConference, conference.getName());
+                    })
+                    // reduce Pair -> TreeMap<gamesPlayed, List<conferenceNames>>
+                    .reduce(
+                            new TreeMap<>(),
+                            (memo, pair) -> {
+                                if (!memo.containsKey(pair.getLeft())) {
+                                    memo.put(pair.getLeft(), new ArrayList<>());
+                                }
+
+                                memo.get(pair.getLeft()).add(pair.getRight());
+
+                                return memo;
+                            },
+                            (treeOne, treeTwo) -> {
+                                treeOne.putAll(treeTwo);
+                                return treeOne;
                             }
+                    );
 
-                            memo.get(pair.getLeft()).add(pair.getRight());
-
-                            return memo;
-                        },
-                        (treeOne, treeTwo) -> {
-                            treeOne.putAll(treeTwo);
-                            return treeOne;
-                        }
-                );
-
-        if (conferencesStream != null) {
-            conferencesStream.close();
+            // Return the one with the fewest game (first key in treeMap is lowest)
+            return conferencesByGamesPlayed.firstEntry().getValue();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        if (teamsStream != null) {
-            teamsStream.close();
-        }
-
-        // Return the one with the fewest game (first key in treeMap is lowest)
-        return conferencesByGamesPlayed.firstEntry().getValue();
     }
 
-    public String getTeamWithHighestTouchdownToFieldGoalRatio() throws IOException {
+    public String getTeamWithHighestTouchdownToFieldGoalRatio() {
         InputStream teamsStream = null;
 
         try {
@@ -225,22 +232,23 @@ public class App {
             System.out.println("Error parsing json: " + exception);
         }
 
-        List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+        try {
+            List<Team> teams = mapper.readValue(teamsStream, new TypeReference<List<Team>>() {});
+            Objects.requireNonNull(teamsStream).close();
 
-        Optional<Pair<String, Double>> teamsToRatio = teams.stream()
-                .map(team -> {
-                    int touchdowns = Optional.of(team.getTouchdowns()).orElse(0);
-                    int fieldGoals = Optional.of(team.getFieldGoals()).orElse(0);
-                    double ratio = (double) touchdowns / fieldGoals;
+            Optional<Pair<String, Double>> teamsToRatio = teams.stream()
+                    .map(team -> {
+                        int touchdowns = Optional.of(team.getTouchdowns()).orElse(0);
+                        int fieldGoals = Optional.of(team.getFieldGoals()).orElse(0);
+                        double ratio = (double) touchdowns / fieldGoals;
 
-                    return new Pair<>(team.getName(), ratio);
-                }).min((a, b) -> b.getRight().compareTo(a.getRight()));
+                        return new Pair<>(team.getName(), ratio);
+                    }).min((a, b) -> b.getRight().compareTo(a.getRight()));
 
-        if (teamsStream != null) {
-            teamsStream.close();
+            return teamsToRatio.map(Pair::getLeft).orElse(null);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return teamsToRatio.map(Pair::getLeft).orElse(null);
     }
 
     public String getConferenceWithHighestTouchdownToFieldGoalRatio() {
@@ -379,23 +387,5 @@ public class App {
             throw new RuntimeException(e);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

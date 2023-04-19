@@ -5,12 +5,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 public class AppTest {
@@ -22,7 +19,7 @@ public class AppTest {
     }
 
     @Test
-    public void testSortConferencesByAveragePointsPerGame() throws IOException {
+    public void testSortConferencesByAveragePointsPerGame() {
         List<String> sorted = app.sortConferencesByAveragePointsPerGame();
 
         Assert.assertEquals(sorted, Arrays.asList(
@@ -42,7 +39,7 @@ public class AppTest {
     }
 
     @Test
-    public void testGetTeamsPlayingFewerThanSevenGames() throws IOException {
+    public void testGetTeamsPlayingFewerThanSevenGames() {
         List<String> teamNames = app.getTeamsPlayingFewerThanSevenGames();
         String colorado = teamNames.stream().filter(t -> t.equals("Colorado")).findFirst().orElse(null);
 
@@ -51,14 +48,14 @@ public class AppTest {
     }
 
     @Test
-    public void testGetConferenceWithFewestGamesPlayed() throws IOException {
+    public void testGetConferenceWithFewestGamesPlayed() {
         List<String> teamNames = app.getConferenceWithFewestGamesPlayed();
 
         Assert.assertEquals(Collections.singletonList("Big 12"), teamNames);
     }
 
     @Test
-    public void testGetTeamWithHighestTouchdownToFieldGoalRatio() throws IOException {
+    public void testGetTeamWithHighestTouchdownToFieldGoalRatio() {
         String teamName = app.getTeamWithHighestTouchdownToFieldGoalRatio();
 
         Assert.assertEquals("Georgia Tech", teamName);
