@@ -358,7 +358,27 @@ public class App {
         }
     }
 
+    public List<String> getNicknamesOfTeamsWithAtLeastOneSafetyOrTwoPointConversion() {
+        InputStream inputStream = Team.class.getResourceAsStream("/teams.json");
 
+        try {
+            List<Team> teams = mapper.readValue(inputStream, new TypeReference<List<Team>>() {});
+            Objects.requireNonNull(inputStream).close();
+
+            return teams.stream()
+                    .filter(team -> {
+                        int safeties = Optional.ofNullable(team.getSafeties()).orElse(0);
+                        int twoPointConversions = Optional.ofNullable(team.getTwoPointConversions()).orElse(0);
+
+                        return safeties > 0 || twoPointConversions > 0;
+                    })
+                    .map(Team::getNickname)
+                    .collect(Collectors.toList());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 

@@ -80,6 +80,37 @@ public class AppTest {
 
     @Test
     public void testGetNicknamesOfTeamsWithAtLeastOneSafetyOrTwoPointConversion() {
+        List<String> nickNames = app.getNicknamesOfTeamsWithAtLeastOneSafetyOrTwoPointConversion();
+
+        Assert.assertEquals(nickNames, Arrays.asList(
+                "Crimson Tide",
+                "Wildcats",
+                "Bears",
+                "Eagles",
+                "Gators",
+                "Seminoles",
+                "Hoosiers",
+                "Hawkeyes",
+                "Cyclones",
+                "Jayhawks",
+                "Wildcats",
+                "Wolverines",
+                "Spartans",
+                "Golden Gophers",
+                "Tigers",
+                "Wolfpack",
+                "Cornhuskers",
+                "Wildcats",
+                "Ducks",
+                "Nittany Lions",
+                "Boilermakers",
+                "Gamecocks",
+                "Cardinal",
+                "Volunteers",
+                "Longhorns",
+                "Trojans",
+                "Hokies"
+        ));
 
     }
 }
